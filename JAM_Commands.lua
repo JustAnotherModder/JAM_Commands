@@ -35,14 +35,45 @@ function JCMD:SetPower(args)
 
 	if plyVeh then
 		Citizen.CreateThread(function(...)
+			local vehProps = ESX.Game.GetVehicleProperties(plyVeh)
 			self.IsLooping = true
+
+			SetVehicleDirtLevel(veh, false)
+			SetVehicleFixed(plyVeh)	
+
+
+			SetEntityCanBeDamaged(plyVeh, false)
+			SetVehicleCanBeVisiblyDamaged(plyVeh, false)
+			SetEntityProofs(plyVeh, true, true, true, true, true, true, true, true)
 			SetVehicleEngineTorqueMultiplier(plyVeh, 1.8)
+			SetEntityMaxSpeed(plyVeh, 1000000.0)
+			SetEntityMaxSpeed(plyPed, 1000000.0)
+
+			local tick = 0			
 			while IsPedInVehicle(plyPed, plyVeh, true) do
+				tick = tick + 1
+				if tick % 10 == 1 then
+					local allVehs = ESX.Game.GetVehiclesInArea(GetEntityCoords(PlayerPedId()), 50)
+					for k,v in pairs(allVehs) do
+						SetEntityNoCollisionEntity(v, plyVeh, false)
+						--SetEntityNoCollisionEntity(plyVeh, v, false)
+					end
+				end
+
+				if tick % 100 then 
+					RemoveDecalsFromVehicle(plyVeh)
+				end
+				
 				SetVehicleEnginePowerMultiplier(plyVeh, num)
 				Citizen.Wait(0)
 			end
+			SetEntityCanBeDamaged(plyVeh, true)
+			SetVehicleCanBeVisiblyDamaged(plyVeh, true)
+			SetEntityProofs(plyVeh, false, false, false, false, false, false, false, false)
 			SetVehicleEnginePowerMultiplier(plyVeh, 1.0)
 			SetVehicleEngineTorqueMultiplier(plyVeh, 1.0)
+			SetEntityMaxSpeed(plyVeh, 540.0)
+			SetEntityMaxSpeed(plyPed, 540.0)
 			self.IsLooping = false
 		end)
 	end
