@@ -22,3 +22,6 @@ client_scripts {
 	'JAM_Commands/JAM_Commands.lua',
 }
 ```
+
+### Notes
+- Any and all improvements must be send back to the author (me), here on github.
