@@ -1,6 +1,20 @@
 JAM.Commands = {}
 local JCMD = JAM.Commands
 
+function JCMD:PrintDist(p2)
+	if not p2 then return; end
+	local pedA = GetPlayerPed(PlayerId())
+	local pedB = GetPlayerPed(p2)
+	if not pedA or not pedB then return; end
+	local posA = GetEntityCoords(pedA)
+	local posB = GetEntityCoords(pedB)
+	if not posA or not posB then return; end
+	local dist = JUtils:GetVecDist(pedA,pedB)
+	TriggerEvent("chatMessage", "", {0, 255, 0}, "-----" )
+	TriggerEvent("chatMessage", "GETDIST", {0, 255, 0}, "Dist = " .. math.floor(dist * 100)/100 )
+	TriggerEvent("chatMessage", "", {0, 255, 0}, "-----" )
+end
+
 function JCMD:PrintPlayerPosition()
 	if not self then return; end
 
@@ -23,14 +37,15 @@ function JCMD:SetPower(args)
 	if not args or not args[1] or self.IsLooping then return; end
 
 	local canContinue = false
-	ESX.TriggerServerCallback('JAM:GetAceGroup', function(group) if group ~= "admin" and group ~= "superadmin" then canContinue = 1; else canContinue = 2; end; end)
+	ESX.TriggerServerCallback('JAM:GetAceGroup', function(group) 
+	if group ~= "admin" and group ~= "superadmin" then canContinue = 1; else canContinue = 2; end; end)
 	while not canContinue do Citizen.Wait(0); end
 	if canContinue == 1 then return; end
 
 	local num = tonumber(args[1])
 	num = num + 0.001
 
-	local plyPed = GetPlayerPed()
+	local plyPed = GetPlayerPed(PlayerId())
 	local plyVeh = GetLastDrivenVehicle(plyPed, true)
 
 	if plyVeh then
@@ -79,5 +94,47 @@ function JCMD:SetPower(args)
 	end
 end
 
+function JCMD:SetInvincible(jug)
+	self.IsInvincible = not self.IsInvincible
+	local plyPed = GetPlayerPed(PlayerId())
+	SetEntityInvincible(plyPed, self.IsInvincible)
+	if not jug then
+		local str = "Invincible : "
+		if self.IsInvincible then str = str .. "~g~Enabled"
+		else str = str .. "~r~Disabled"
+		end
+		ESX.ShowNotification(str)
+	else
+		local str = "Juggernaught : "
+		if self.IsInvincible then str = str .. "~g~Enabled"
+		else str = str .. "~r~Disabled"
+		end
+		ESX.ShowNotification(str)
+	end
+end
+
+function JCMD:SetNoReload(jug)
+	self.NoReload = not self.NoReload
+	local plyPed = GetPlayerPed(PlayerId())
+	SetPedInfiniteAmmoClip(plyPed, self.NoReload)
+	if not jug then	
+		local str = "No Reload : "
+		if self.NoReload then str = str .. "~g~Enabled"
+		else str = str .. "~r~Disabled"
+		end
+	end
+	ESX.ShowNotification(str)
+	Citizen.CreateThread(function(...)
+		while self.NoReload do 
+			Citizen.Wait(0)
+			SetFireAmmoThisFrame(plyPed)
+		end
+	end)
+end
+
+RegisterCommand('jug', function(...) JCMD:SetNoReload(...); JCMD:SetInvincible(...); end)
+RegisterCommand('norel', function(...) JCMD:SetNoReload(...); end)
+RegisterCommand('invin', function(...) JCMD:SetInvincible(...); end)
 RegisterCommand('getpos', function(...) JCMD:PrintPlayerPosition(...); end)
+RegisterCommand('getdist', function(source, args) JCMD:PrintDist(args); end)
 RegisterCommand('setpower', function(source, args) JCMD:SetPower(args); end)
