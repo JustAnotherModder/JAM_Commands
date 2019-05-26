@@ -96,7 +96,7 @@ end
 
 function JCMD:SetInvincible(jug)
 	self.IsInvincible = not self.IsInvincible
-	local plyPed = GetPlayerPed(PlayerId())
+	local plyPed = PlayerPedId(-1)
 	SetEntityInvincible(plyPed, self.IsInvincible)
 	if not jug then
 		local str = "Invincible : "
@@ -115,7 +115,7 @@ end
 
 function JCMD:SetNoReload(jug)
 	self.NoReload = not self.NoReload
-	local plyPed = GetPlayerPed(PlayerId())
+	local plyPed = PlayerPedId(-1)
 	SetPedInfiniteAmmoClip(plyPed, self.NoReload)
 	if not jug then	
 		local str = "No Reload : "
@@ -132,9 +132,17 @@ function JCMD:SetNoReload(jug)
 	end)
 end
 
+function JCMD:Repair()
+	local plyPed = GetPlayerPed(-1)
+	local plyVeh = GetLastDrivenVehicle(plyPed, true)
+	SetVehicleFixed(plyVeh)
+	SetVehicleDirtLevel(plyVeh, false)
+end
+
 RegisterCommand('jug', function(...) JCMD:SetNoReload(...); JCMD:SetInvincible(...); end)
 RegisterCommand('norel', function(...) JCMD:SetNoReload(...); end)
 RegisterCommand('invin', function(...) JCMD:SetInvincible(...); end)
 RegisterCommand('getpos', function(...) JCMD:PrintPlayerPosition(...); end)
 RegisterCommand('getdist', function(source, args) JCMD:PrintDist(args); end)
 RegisterCommand('setpower', function(source, args) JCMD:SetPower(args); end)
+RegisterCommand('repair', function(source, args) JCMD:Repair(args); end)
